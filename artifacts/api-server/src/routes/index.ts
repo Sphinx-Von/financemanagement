@@ -4,6 +4,7 @@ import authRouter from "./auth";
 import usersRouter from "./users";
 import recordsRouter from "./records";
 import dashboardRouter from "./dashboard";
+import rentalRouter from "./rental";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,7 @@ router.use(authRouter);
 router.use(usersRouter);
 router.use(recordsRouter);
 router.use(dashboardRouter);
+router.use(rentalRouter);
+
 
 export default router;

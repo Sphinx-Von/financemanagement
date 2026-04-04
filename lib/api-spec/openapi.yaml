@@ -4,9 +4,11 @@ info:
   title: Api
   version: 0.1.0
   description: Finance Data Processing and Access Control API
+
 servers:
   - url: /api
     description: Base API path
+
 tags:
   - name: health
     description: Health operations
@@ -18,6 +20,8 @@ tags:
     description: Financial records management
   - name: dashboard
     description: Dashboard summary analytics
+  - name: rental
+    description: Rental property and payments
 
 paths:
   /healthz:
@@ -527,6 +531,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /rental/setup:
+    post:
+      operationId: createRentalSetup
+      tags: [rental]
+      summary: Save rental property and payment details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRentalSetupBody"
+      responses:
+        "201":
+          description: Rental setup saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -785,3 +814,75 @@ components:
         - income
         - expenses
         - net
+
+    CreateRentalSetupBody:
+      type: object
+      properties:
+        property:
+          $ref: "#/components/schemas/CreatePropertyBody"
+        payment:
+          $ref: "#/components/schemas/CreatePaymentBody"
+      required:
+        - property
+        - payment
+
+    CreatePropertyBody:
+      type: object
+      properties:
+        propertyName:
+          type: string
+        fullAddress:
+          type: string
+        unitNumber:
+          type: string
+        floor:
+          type: string
+        propertyType:
+          type: string
+          enum: [apartment, pg, villa, other]
+        furnishingStatus:
+          type: string
+          enum: [furnished, semi_furnished, unfurnished]
+        amenities:
+          type: array
+          items:
+            type: string
+      required:
+        - propertyName
+        - fullAddress
+        - unitNumber
+        - floor
+        - propertyType
+        - furnishingStatus
+        - amenities
+
+    CreatePaymentBody:
+      type: object
+      properties:
+        dueDate:
+          type: string
+        paymentDate:
+          type: string
+          nullable: true
+        amountPaid:
+          type: number
+        paymentMethod:
+          type: string
+          enum: [upi, bank_transfer, cash, card, other]
+          nullable: true
+        transactionId:
+          type: string
+          nullable: true
+        lateFees:
+          type: number
+        outstandingBalance:
+          type: number
+        paymentStatus:
+          type: string
+          enum: [paid, unpaid, overdue]
+      required:
+        - dueDate
+        - amountPaid
+        - lateFees
+        - outstandingBalance
+        - paymentStatus
