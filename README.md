@@ -14,6 +14,7 @@ A production-quality REST API backend for a finance dashboard system. Built with
 | Database | PostgreSQL + Drizzle ORM |
 | Validation | Zod (v3/v4 compatible) |
 | Logging | Pino (structured JSON) |
+
 | API Contract | OpenAPI 3.1 |
 | Monorepo | pnpm workspaces |
 
