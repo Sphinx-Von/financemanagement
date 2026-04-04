@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
-}
+export type RecordType = (typeof RecordType)[keyof typeof RecordType];
+
+export const RecordType = {
+  income: "income",
+  expense: "expense",
+} as const;
