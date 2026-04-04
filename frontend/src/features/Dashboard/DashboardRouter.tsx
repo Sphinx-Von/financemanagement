@@ -1,4 +1,4 @@
-import AdminDashboard from "../Dashboard/AdminDashboard";
+import AdminDashboard from "./admin/AdminDashboard";
 import AnalystDashboard from "../Dashboard/AnalystDashboard";
 import ViewerDashboard from "../Dashboard/ViewerDashboard";
 
