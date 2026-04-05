@@ -185,6 +185,74 @@ export interface MonthlyTrend {
   net: number;
 }
 
+export type TenantRentalRowRole =
+  (typeof TenantRentalRowRole)[keyof typeof TenantRentalRowRole];
+
+export const TenantRentalRowRole = {
+  viewer: "viewer",
+  analyst: "analyst",
+  admin: "admin",
+} as const;
+
+export type TenantRentalRowStatus =
+  (typeof TenantRentalRowStatus)[keyof typeof TenantRentalRowStatus];
+
+export const TenantRentalRowStatus = {
+  active: "active",
+  inactive: "inactive",
+} as const;
+
+/**
+ * @nullable
+ */
+export type TenantRentalRowPaymentStatus =
+  | (typeof TenantRentalRowPaymentStatus)[keyof typeof TenantRentalRowPaymentStatus]
+  | null;
+
+export const TenantRentalRowPaymentStatus = {
+  paid: "paid",
+  unpaid: "unpaid",
+  overdue: "overdue",
+} as const;
+
+export interface TenantRentalRow {
+  userId: number;
+  username: string;
+  email: string;
+  role: TenantRentalRowRole;
+  status: TenantRentalRowStatus;
+  /** @nullable */
+  propertyName?: string | null;
+  /** @nullable */
+  fullAddress?: string | null;
+  /** @nullable */
+  unitNumber?: string | null;
+  /** @nullable */
+  floor?: string | null;
+  /** @nullable */
+  propertyType?: string | null;
+  /** @nullable */
+  furnishingStatus?: string | null;
+  /** @nullable */
+  amenities?: string[] | null;
+  /** @nullable */
+  dueDate?: string | null;
+  /** @nullable */
+  paymentDate?: string | null;
+  /** @nullable */
+  amountPaid?: number | null;
+  /** @nullable */
+  paymentMethod?: string | null;
+  /** @nullable */
+  transactionId?: string | null;
+  /** @nullable */
+  lateFees?: number | null;
+  /** @nullable */
+  outstandingBalance?: number | null;
+  /** @nullable */
+  paymentStatus?: TenantRentalRowPaymentStatus;
+}
+
 export type CreatePropertyBodyPropertyType =
   (typeof CreatePropertyBodyPropertyType)[keyof typeof CreatePropertyBodyPropertyType];
 
@@ -214,6 +282,9 @@ export interface CreatePropertyBody {
   amenities: string[];
 }
 
+/**
+ * @nullable
+ */
 export type CreatePaymentBodyPaymentMethod =
   | (typeof CreatePaymentBodyPaymentMethod)[keyof typeof CreatePaymentBodyPaymentMethod]
   | null;
@@ -237,9 +308,12 @@ export const CreatePaymentBodyPaymentStatus = {
 
 export interface CreatePaymentBody {
   dueDate: string;
+  /** @nullable */
   paymentDate?: string | null;
   amountPaid: number;
+  /** @nullable */
   paymentMethod?: CreatePaymentBodyPaymentMethod;
+  /** @nullable */
   transactionId?: string | null;
   lateFees: number;
   outstandingBalance: number;

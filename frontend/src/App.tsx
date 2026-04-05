@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { login, getDashboardSummary, getRecords } from "../src/api";
+
+
+import {
+  login,
+  getDashboardSummary,
+  getRecords,
+  getTenantDashboard,
+  type TenantDashboardRow,
+} from "../src/api";
+
+
 import LoginPage from "../src/features/auth/Login";
 import DashboardRouter from "../src/features/Dashboard/DashboardRouter";
 
@@ -14,6 +24,9 @@ export default function App() {
   const [token, setToken] = useState("");
   const [user, setUser] = useState<User | null>(null);
   const [summary, setSummary] = useState<any>(null);
+
+
+const [tenantRows, setTenantRows] = useState<TenantDashboardRow[]>([]);
  
 
 const [records, setRecords] = useState<any[]>([]);
@@ -43,7 +56,7 @@ const [recordsLimit] = useState(10);
 
    useEffect(() => {
   const loadDashboard = async () => {
-    if (!token) return;
+    if (!token || !user) return;
 
     try {
       setError("");
@@ -55,13 +68,21 @@ const [recordsLimit] = useState(10);
       setRecords(recordsRes.data);
       setRecordsTotal(recordsRes.total);
       setRecordsTotalPages(recordsRes.totalPages);
+
+      if (user.role === "analyst" || user.role === "admin") {
+        const tenantsRes = await getTenantDashboard(token);
+        setTenantRows(tenantsRes);
+      } else {
+        setTenantRows([]);
+      }
     } catch (e: any) {
       setError(e.message ?? "Failed to load dashboard");
     }
   };
 
   loadDashboard();
-}, [token, recordsPage, recordsLimit]);
+}, [token, user, recordsPage, recordsLimit]);
+
 
   const handleLogout = () => {
     setToken("");
@@ -82,17 +103,18 @@ const [recordsLimit] = useState(10);
   }
 
   return (
-    <DashboardRouter
-  token={token}
-  user={user}
-  summary={summary}
-  records={records}
-  error={error}
-  onLogout={handleLogout}
-  recordsPage={recordsPage}
-  recordsTotal={recordsTotal}
-  recordsTotalPages={recordsTotalPages}
-  onRecordsPageChange={setRecordsPage}
-/>
-  );
+  <DashboardRouter
+    token={token}
+    user={user}
+    summary={summary}
+    records={records}
+    error={error}
+    onLogout={handleLogout}
+    recordsPage={recordsPage}
+    recordsTotal={recordsTotal}
+    recordsTotalPages={recordsTotalPages}
+    onRecordsPageChange={setRecordsPage}
+    tenantRows={tenantRows}
+  />
+);
 }

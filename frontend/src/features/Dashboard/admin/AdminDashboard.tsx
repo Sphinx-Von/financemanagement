@@ -7,6 +7,7 @@ import {
   createRecord,
   updateRecord,
   deleteRecord,
+  getTenantDashboard,
 } from "../../../api";
 import type {
   ApiUser,
@@ -14,6 +15,7 @@ import type {
   UserStatus,
   ApiRecord,
   RecordType,
+  TenantDashboardRow,
 } from "../../../api";
 
 import AdminSidebar, { type DashboardSection } from "./AdminSidebar";
@@ -98,6 +100,8 @@ export default function AdminDashboard({
   const [editRecordDate, setEditRecordDate] = useState("");
   const [editRecordNotes, setEditRecordNotes] = useState("");
 
+  const [tenantRows, setTenantRows] = useState<TenantDashboardRow[]>([]);
+
   useEffect(() => {
     const loadUsers = async () => {
       try {
@@ -115,6 +119,19 @@ export default function AdminDashboard({
   useEffect(() => {
     setAdminRecords(records as ApiRecord[]);
   }, [records]);
+
+  useEffect(() => {
+    const loadTenantRows = async () => {
+      try {
+        const data = await getTenantDashboard(token);
+        setTenantRows(data);
+      } catch {
+        // silent for now
+      }
+    };
+
+    loadTenantRows();
+  }, [token]);
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,8 +210,7 @@ export default function AdminDashboard({
       return;
     }
 
-    const confirmed = window.confirm("Are you sure you want to delete this user?");
-    if (!confirmed) return;
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
       await deleteUser(token, id);
@@ -283,8 +299,7 @@ export default function AdminDashboard({
   };
 
   const handleDeleteRecord = async (id: number) => {
-    const confirmed = window.confirm("Are you sure you want to delete this record?");
-    if (!confirmed) return;
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
 
     try {
       await deleteRecord(token, id);
@@ -299,10 +314,18 @@ export default function AdminDashboard({
       case "overview":
         return (
           <DashboardOverview
+            token={token}
             user={user}
             summary={summary}
             error={error}
             usersError={usersError}
+            users={users}
+            tenantRows={tenantRows}
+            records={adminRecords}
+            onRefreshTenants={async () => {
+              const data = await getTenantDashboard(token);
+              setTenantRows(data);
+            }}
           />
         );
 
@@ -403,7 +426,6 @@ export default function AdminDashboard({
         onChangeSection={setActiveSection}
         onLogout={onLogout}
       />
-
       <main style={mainContentStyle}>
         <div style={panelStyle}>{renderContent()}</div>
       </main>

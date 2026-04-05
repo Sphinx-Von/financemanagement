@@ -291,6 +291,42 @@ export const GetRecentActivityResponse = zod.array(
 );
 
 /**
+ * @summary Get tenant rental overview (Analyst and Admin)
+ */
+export const GetTenantDashboardResponseItem = zod.object({
+  userId: zod.number(),
+  username: zod.string(),
+  email: zod.string(),
+  role: zod.enum(["viewer", "analyst", "admin"]),
+  status: zod.enum(["active", "inactive"]),
+  propertyName: zod.string().nullish(),
+  fullAddress: zod.string().nullish(),
+  unitNumber: zod.string().nullish(),
+  floor: zod.string().nullish(),
+  propertyType: zod.string().nullish(),
+  furnishingStatus: zod.string().nullish(),
+  amenities: zod.array(zod.string()).nullish(),
+  dueDate: zod.string().nullish(),
+  paymentDate: zod.string().nullish(),
+  amountPaid: zod.number().nullish(),
+  paymentMethod: zod.string().nullish(),
+  transactionId: zod.string().nullish(),
+  lateFees: zod.number().nullish(),
+  outstandingBalance: zod.number().nullish(),
+  paymentStatus: zod
+    .union([
+      zod.literal("paid"),
+      zod.literal("unpaid"),
+      zod.literal("overdue"),
+      zod.literal(null),
+    ])
+    .nullish(),
+});
+export const GetTenantDashboardResponse = zod.array(
+  GetTenantDashboardResponseItem,
+);
+
+/**
  * @summary Save rental property and payment details
  */
 export const CreateRentalSetupBody = zod.object({
@@ -308,7 +344,14 @@ export const CreateRentalSetupBody = zod.object({
     paymentDate: zod.string().nullish(),
     amountPaid: zod.number(),
     paymentMethod: zod
-      .enum(["upi", "bank_transfer", "cash", "card", "other"])
+      .union([
+        zod.literal("upi"),
+        zod.literal("bank_transfer"),
+        zod.literal("cash"),
+        zod.literal("card"),
+        zod.literal("other"),
+        zod.literal(null),
+      ])
       .nullish(),
     transactionId: zod.string().nullish(),
     lateFees: zod.number(),

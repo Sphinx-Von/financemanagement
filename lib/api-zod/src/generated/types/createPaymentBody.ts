@@ -10,9 +10,12 @@ import type { CreatePaymentBodyPaymentStatus } from "./createPaymentBodyPaymentS
 
 export interface CreatePaymentBody {
   dueDate: string;
+  /** @nullable */
   paymentDate?: string | null;
   amountPaid: number;
+  /** @nullable */
   paymentMethod?: CreatePaymentBodyPaymentMethod;
+  /** @nullable */
   transactionId?: string | null;
   lateFees: number;
   outstandingBalance: number;

@@ -33,6 +33,7 @@ import type {
   MonthlyTrend,
   Record,
   RecordListResponse,
+  TenantRentalRow,
   UpdateRecordBody,
   UpdateUserBody,
   User,
@@ -1530,6 +1531,81 @@ export function useGetRecentActivity<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetRecentActivityQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get tenant rental overview (Analyst and Admin)
+ */
+export const getGetTenantDashboardUrl = () => {
+  return `/api/dashboard/tenants`;
+};
+
+export const getTenantDashboard = async (
+  options?: RequestInit,
+): Promise<TenantRentalRow[]> => {
+  return customFetch<TenantRentalRow[]>(getGetTenantDashboardUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTenantDashboardQueryKey = () => {
+  return [`/api/dashboard/tenants`] as const;
+};
+
+export const getGetTenantDashboardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTenantDashboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTenantDashboard>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTenantDashboardQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getTenantDashboard>>
+  > = ({ signal }) => getTenantDashboard({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTenantDashboard>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTenantDashboardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTenantDashboard>>
+>;
+export type GetTenantDashboardQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get tenant rental overview (Analyst and Admin)
+ */
+
+export function useGetTenantDashboard<
+  TData = Awaited<ReturnType<typeof getTenantDashboard>>,
+  TError = ErrorType<ErrorResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getTenantDashboard>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTenantDashboardQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

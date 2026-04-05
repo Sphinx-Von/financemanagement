@@ -35,6 +35,34 @@ const CreateRentalSetupSchema = z.object({
   }),
 });
 
+const UpdatePropertySchema = z.object({
+  propertyName: z.string().min(1).max(200),
+  fullAddress: z.string().min(1).max(500),
+  unitNumber: z.string().min(1).max(50),
+  floor: z.string().min(1).max(50),
+  propertyType: z.enum(["apartment", "pg", "villa", "other"]),
+  furnishingStatus: z.enum(["furnished", "semi_furnished", "unfurnished"]),
+  amenities: z.array(z.string().min(1)).default([]),
+});
+
+const UpdatePaymentSchema = z.object({
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+  paymentDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD")
+    .nullable()
+    .optional(),
+  amountPaid: z.number().min(0),
+  paymentMethod: z
+    .enum(["upi", "bank_transfer", "cash", "card", "other"])
+    .nullable()
+    .optional(),
+  transactionId: z.string().max(200).nullable().optional(),
+  lateFees: z.number().min(0),
+  outstandingBalance: z.number().min(0),
+  paymentStatus: z.enum(["paid", "unpaid", "overdue"]),
+});
+
 // GET current user's saved rental setup
 router.get(
   "/rental/setup",
@@ -128,6 +156,171 @@ router.post(
       property: createdProperty,
       payment: createdPayment,
     });
+  }
+);
+
+// PATCH property by id
+router.patch(
+  "/rental/property/:id",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const currentUser = req.currentUser!;
+
+    if (currentUser.role !== "admin" && currentUser.role !== "analyst") {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const propertyId = Number(req.params.id);
+
+    if (Number.isNaN(propertyId)) {
+      res.status(400).json({ error: "Invalid property id" });
+      return;
+    }
+
+    const parsed = UpdatePropertySchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+
+    const [updatedProperty] = await db
+      .update(propertiesTable)
+      .set({
+        propertyName: parsed.data.propertyName,
+        fullAddress: parsed.data.fullAddress,
+        unitNumber: parsed.data.unitNumber,
+        floor: parsed.data.floor,
+        propertyType: parsed.data.propertyType,
+        furnishingStatus: parsed.data.furnishingStatus,
+        amenities: parsed.data.amenities,
+      })
+      .where(eq(propertiesTable.id, propertyId))
+      .returning();
+
+    if (!updatedProperty) {
+      res.status(404).json({ error: "Property not found" });
+      return;
+    }
+
+    res.json(updatedProperty);
+  }
+);
+
+// PATCH payment by id
+router.patch(
+  "/rental/payment/:id",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const currentUser = req.currentUser!;
+
+    if (currentUser.role !== "admin" && currentUser.role !== "analyst") {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const paymentId = Number(req.params.id);
+
+    if (Number.isNaN(paymentId)) {
+      res.status(400).json({ error: "Invalid payment id" });
+      return;
+    }
+
+    const parsed = UpdatePaymentSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.message });
+      return;
+    }
+
+    const [updatedPayment] = await db
+      .update(paymentsTable)
+      .set({
+        dueDate: parsed.data.dueDate,
+        paymentDate: parsed.data.paymentDate ?? null,
+        amountPaid: parsed.data.amountPaid.toString(),
+        paymentMethod: parsed.data.paymentMethod ?? null,
+        transactionId: parsed.data.transactionId ?? null,
+        lateFees: parsed.data.lateFees.toString(),
+        outstandingBalance: parsed.data.outstandingBalance.toString(),
+        paymentStatus: parsed.data.paymentStatus,
+      })
+      .where(eq(paymentsTable.id, paymentId))
+      .returning();
+
+    if (!updatedPayment) {
+      res.status(404).json({ error: "Payment not found" });
+      return;
+    }
+
+    res.json(updatedPayment);
+  }
+);
+
+// DELETE property by id
+router.delete(
+  "/rental/property/:id",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const currentUser = req.currentUser!;
+
+    if (currentUser.role !== "admin" && currentUser.role !== "analyst") {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const propertyId = Number(req.params.id);
+
+    if (Number.isNaN(propertyId)) {
+      res.status(400).json({ error: "Invalid property id" });
+      return;
+    }
+
+    const [deletedProperty] = await db
+      .delete(propertiesTable)
+      .where(eq(propertiesTable.id, propertyId))
+      .returning();
+
+    if (!deletedProperty) {
+      res.status(404).json({ error: "Property not found" });
+      return;
+    }
+
+    res.json({ message: "Property deleted successfully" });
+  }
+);
+
+// DELETE payment by id
+router.delete(
+  "/rental/payment/:id",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const currentUser = req.currentUser!;
+
+    if (currentUser.role !== "admin" && currentUser.role !== "analyst") {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const paymentId = Number(req.params.id);
+
+    if (Number.isNaN(paymentId)) {
+      res.status(400).json({ error: "Invalid payment id" });
+      return;
+    }
+
+    const [deletedPayment] = await db
+      .delete(paymentsTable)
+      .where(eq(paymentsTable.id, paymentId))
+      .returning();
+
+    if (!deletedPayment) {
+      res.status(404).json({ error: "Payment not found" });
+      return;
+    }
+
+    res.json({ message: "Payment deleted successfully" });
   }
 );
 

@@ -11,7 +11,10 @@ export interface LoginResponse {
   };
 }
 
-export async function login(username: string, password: string): Promise<LoginResponse> {
+export async function login(
+  username: string,
+  password: string
+): Promise<LoginResponse> {
   const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -40,6 +43,21 @@ export async function getDashboardSummary(token: string) {
 
   return res.json();
 }
+
+export type RecordType = "income" | "expense";
+
+export type ApiRecord = {
+  id: number;
+  amount: number;
+  type: RecordType;
+  category: string;
+  date: string;
+  notes: string | null;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdById: number;
+};
 
 export type RecordsResponse = {
   data: ApiRecord[];
@@ -72,19 +90,20 @@ export async function getRecords(
 
   return res.json();
 }
+
 export type UserRole = "viewer" | "analyst" | "admin";
+export type UserStatus = "active" | "inactive";
 
 export interface ApiUser {
   id: number;
   username: string;
   email: string;
   role: UserRole;
-  status: "active" | "inactive";
+  status: UserStatus;
   createdAt: string;
   updatedAt: string;
 }
 
-// GET /users
 export async function getUsers(token: string): Promise<ApiUser[]> {
   const res = await fetch(`${API_BASE_URL}/users`, {
     headers: {
@@ -100,7 +119,6 @@ export async function getUsers(token: string): Promise<ApiUser[]> {
   return res.json();
 }
 
-// POST /users
 export async function createUser(
   token: string,
   payload: { username: string; email: string; password: string; role: UserRole }
@@ -121,11 +139,6 @@ export async function createUser(
 
   return res.json();
 }
-
-
-
-//Update user - PATCH /users/:id
-export type UserStatus = "active" | "inactive";
 
 export async function updateUser(
   token: string,
@@ -167,23 +180,6 @@ export async function deleteUser(token: string, id: number): Promise<void> {
     throw new Error(body.error ?? "Failed to delete user");
   }
 }
-
-
-
-export type RecordType = "income" | "expense";
-
-export type ApiRecord = {
-  id: number;
-  amount: number;
-  type: RecordType;
-  category: string;
-  date: string;
-  notes: string | null;
-  deletedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  createdById: number;
-};
 
 export type CreateRecordBody = {
   amount: number;
@@ -255,5 +251,142 @@ export async function deleteRecord(token: string, id: number): Promise<void> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error ?? "Failed to delete record");
+  }
+}
+
+export interface TenantDashboardRow {
+  userId: number;
+  username: string;
+  email: string;
+  role: "viewer" | "analyst" | "admin";
+  status: "active" | "inactive";
+
+  propertyId: number | null;
+  propertyName: string | null;
+  fullAddress: string | null;
+  unitNumber: string | null;
+  floor: string | null;
+  propertyType: "apartment" | "pg" | "villa" | "other" | null;
+  furnishingStatus: "furnished" | "semi_furnished" | "unfurnished" | null;
+  amenities: string[] | null;
+
+  paymentId: number | null;
+  dueDate: string | null;
+  paymentDate: string | null;
+  amountPaid: string | null;
+  paymentMethod: "upi" | "bank_transfer" | "cash" | "card" | "other" | null;
+  transactionId: string | null;
+  lateFees: string | null;
+  outstandingBalance: string | null;
+  paymentStatus: "paid" | "unpaid" | "overdue" | null;
+}
+
+export async function getTenantDashboard(
+  token: string
+): Promise<TenantDashboardRow[]> {
+  const res = await fetch(`${API_BASE_URL}/dashboard/tenants`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to load tenant dashboard");
+  }
+
+  return res.json();
+}
+
+export type UpdatePropertyBody = {
+  propertyName: string;
+  fullAddress: string;
+  unitNumber: string;
+  floor: string;
+  propertyType: "apartment" | "pg" | "villa" | "other";
+  furnishingStatus: "furnished" | "semi_furnished" | "unfurnished";
+  amenities: string[];
+};
+
+export async function updateProperty(
+  token: string,
+  id: number,
+  payload: UpdatePropertyBody
+) {
+  const res = await fetch(`${API_BASE_URL}/rental/property/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to update property");
+  }
+
+  return res.json();
+}
+
+export type UpdatePaymentBody = {
+  dueDate: string;
+  paymentDate?: string | null;
+  amountPaid: number;
+  paymentMethod?: "upi" | "bank_transfer" | "cash" | "card" | "other" | null;
+  transactionId?: string | null;
+  lateFees: number;
+  outstandingBalance: number;
+  paymentStatus: "paid" | "unpaid" | "overdue";
+};
+
+export async function updatePayment(
+  token: string,
+  id: number,
+  payload: UpdatePaymentBody
+) {
+  const res = await fetch(`${API_BASE_URL}/rental/payment/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to update payment");
+  }
+
+  return res.json();
+}
+
+export async function deleteProperty(token: string, id: number): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/rental/property/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to delete property");
+  }
+}
+
+export async function deletePayment(token: string, id: number): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/rental/payment/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to delete payment");
   }
 }

@@ -1,6 +1,7 @@
 import AdminDashboard from "./admin/AdminDashboard";
 import AnalystDashboard from "../Dashboard/AnalystDashboard";
 import ViewerDashboard from "../Dashboard/ViewerDashboard";
+import type { TenantDashboardRow } from "../../api"; // adjust relative path if needed
 
 type User = {
   id: number;
@@ -20,6 +21,7 @@ type DashboardRouterProps = {
   recordsTotal: number;
   recordsTotalPages: number;
   onRecordsPageChange: (page: number) => void;
+   tenantRows: TenantDashboardRow[];
 };
 
 export default function DashboardRouter(props: DashboardRouterProps) {

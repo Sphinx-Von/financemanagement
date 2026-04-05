@@ -531,6 +531,33 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /dashboard/tenants:
+    get:
+      operationId: getTenantDashboard
+      tags: [dashboard]
+      summary: Get tenant rental overview (Analyst and Admin)
+      responses:
+        "200":
+          description: Tenant rental overview
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TenantRentalRow"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /rental/setup:
     post:
       operationId: createRentalSetup
@@ -679,9 +706,13 @@ components:
         date:
           type: string
         notes:
-          type: ["string", "null"]
+          type:
+            - string
+            - "null"
         deletedAt:
-          type: ["string", "null"]
+          type:
+            - string
+            - "null"
         createdAt:
           type: string
         updatedAt:
@@ -815,6 +846,91 @@ components:
         - expenses
         - net
 
+    TenantRentalRow:
+      type: object
+      properties:
+        userId:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [viewer, analyst, admin]
+        status:
+          type: string
+          enum: [active, inactive]
+        propertyName:
+          type:
+            - string
+            - "null"
+        fullAddress:
+          type:
+            - string
+            - "null"
+        unitNumber:
+          type:
+            - string
+            - "null"
+        floor:
+          type:
+            - string
+            - "null"
+        propertyType:
+          type:
+            - string
+            - "null"
+        furnishingStatus:
+          type:
+            - string
+            - "null"
+        amenities:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+        dueDate:
+          type:
+            - string
+            - "null"
+        paymentDate:
+          type:
+            - string
+            - "null"
+        amountPaid:
+          type:
+            - number
+            - "null"
+        paymentMethod:
+          type:
+            - string
+            - "null"
+        transactionId:
+          type:
+            - string
+            - "null"
+        lateFees:
+          type:
+            - number
+            - "null"
+        outstandingBalance:
+          type:
+            - number
+            - "null"
+        paymentStatus:
+          type:
+            - string
+            - "null"
+          enum: [paid, unpaid, overdue, null]
+      required:
+        - userId
+        - username
+        - email
+        - role
+        - status
+
     CreateRentalSetupBody:
       type: object
       properties:
@@ -862,17 +978,20 @@ components:
         dueDate:
           type: string
         paymentDate:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         amountPaid:
           type: number
         paymentMethod:
-          type: string
-          enum: [upi, bank_transfer, cash, card, other]
-          nullable: true
+          type:
+            - string
+            - "null"
+          enum: [upi, bank_transfer, cash, card, other, null]
         transactionId:
-          type: string
-          nullable: true
+          type:
+            - string
+            - "null"
         lateFees:
           type: number
         outstandingBalance:
