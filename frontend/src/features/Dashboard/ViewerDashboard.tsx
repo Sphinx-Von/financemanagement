@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
+
+import { API_BASE_URL } from "../../api";
+
 type User = {
   id: number;
   username: string;
@@ -238,7 +241,7 @@ export default function ViewerDashboard({ token, user, error, onLogout }: Props)
       setLoading(true);
       setSubmitError(null);
       try {
-        const res = await fetch("http://localhost:8080/api/rental/setup", {
+        const res = await fetch(`${API_BASE_URL}/rental/setup`, {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -419,7 +422,7 @@ export default function ViewerDashboard({ token, user, error, onLogout }: Props)
       },
     };
     try {
-      const res = await fetch("http://localhost:8080/api/rental/setup", {
+      const res = await fetch(`${API_BASE_URL}/rental/setup`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
